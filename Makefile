@@ -5,6 +5,8 @@ SOURCES = startup_stm32.s \
     user_i2c.c \
     tb6612.c
 
+PORT ?= /dev/ttyUSB0
+
 CC = arm-none-eabi-gcc
 OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
@@ -28,6 +30,11 @@ $(PROJ_NAME).elf: $(SOURCES)
 
 program: $(PROJ_NAME).bin
 	openocd -f stm32f0motor.cfg -f stm32f0-openocd.cfg -c "stm_flash $(PROJ_NAME).bin" -c shutdown
+
+flash: $(PROJ_NAME).bin
+	stm32flash $(PORT) -k || true
+	stm32flash $(PORT) -u || true
+	stm32flash $(PORT) -v -w $(PROJ_NAME).bin
 
 clean:
 	rm -f *.o
