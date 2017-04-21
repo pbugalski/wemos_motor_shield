@@ -10,8 +10,6 @@ OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 SIZE = arm-none-eabi-size
 
-OPENOCD_BOARD_DIR=/usr/share/openocd/scripts/board
-
 CFLAGS = -Wall -g -std=c99 -Os
 CFLAGS += -mlittle-endian -mcpu=cortex-m0 -march=armv6-m -mthumb
 CFLAGS += -ffunction-sections -fdata-sections
@@ -29,7 +27,7 @@ $(PROJ_NAME).elf: $(SOURCES)
 	$(SIZE) $(PROJ_NAME).elf
 
 program: $(PROJ_NAME).bin
-	openocd -f $(OPENOCD_BOARD_DIR)/stm32f0discovery.cfg -f stm32f0-openocd.cfg -c "stm_flash $(PROJ_NAME).bin" -c shutdown
+	openocd -f stm32f0motor.cfg -f stm32f0-openocd.cfg -c "stm_flash $(PROJ_NAME).bin" -c shutdown
 
 clean:
 	rm -f *.o
