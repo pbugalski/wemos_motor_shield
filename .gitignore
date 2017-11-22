@@ -1,0 +1,4 @@
+# Ignore output
+*.bin
+*.elf
+*.map
