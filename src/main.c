@@ -2,6 +2,8 @@
 #include "user_i2c.h"
 #include "tb6612.h"
 
+#define I2C_BASE_ADDR           0x2d
+
 #define MODE_IN                 0x00
 #define MODE_OUT                0x01
 #define MODE_AF                 0x02
@@ -69,7 +71,11 @@ int main()
     GPIOA->OTYPER |= GPIO_OTYPER_OT_9 | GPIO_OTYPER_OT_10;
     GPIOA->PUPDR |= GPIO_PUPDR_PUPDR9_0 | GPIO_PUPDR_PUPDR10_0;
 
-    I2C1->OAR1 = I2C_OAR1_OA1EN | 0x60;
+    RCC->AHBENR |= RCC_AHBENR_GPIOFEN;
+    GPIOF->MODER  |= MODER(MODE_IN, 0) | MODER(MODE_IN, 1);
+    GPIOF->PUPDR  |= GPIO_PUPDR_PUPDR0_0 | GPIO_PUPDR_PUPDR1_0;
+    I2C1->OAR1 = I2C_OAR1_OA1EN | ((I2C_BASE_ADDR + (GPIOF->IDR & 3)) << 1);
+    
     I2C1->CR1 = I2C_CR1_PE;
 
     TIM3->CCMR1 = TIM_CCMR1_OC1PE | TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 |
