@@ -5,6 +5,6 @@ BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Attach
 BreakBeforeInheritanceComma: false
 BreakBeforeTernaryOperators: true
-ColumnLimit: 160
+ColumnLimit: 120
 IndentWidth: 4
 SortIncludes: false
