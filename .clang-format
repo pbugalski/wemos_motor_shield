@@ -1,0 +1,12 @@
+Language: Cpp
+BasedOnStyle: Google
+IndentWidth: 4
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Attach
+BreakBeforeInheritanceComma: false
+BreakBeforeTernaryOperators: true
+ColumnLimit: 160
+SortIncludes: false
+AlignConsecutiveAssignments: true
+# Waiting for this to be suported
+# AlignConsecutiveMacros: true
