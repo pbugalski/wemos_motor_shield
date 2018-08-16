@@ -1,11 +1,13 @@
-#include "tb6612.h"
-#include "stm32f030x6.h"
+#include "inc/stm32f030x6.h"
+#include "src/tb6612.h"
 
+/* clang-format off */
 #define pin_set(pin)    GPIOA->BSRR = 1u << (pin)
 #define pin_clear(pin)  GPIOA->BRR = 1u << (pin)
 #define pwm_a(pulse)    TIM3->CCR1 = (pulse)
 #define pwm_b(pulse)    TIM3->CCR2 = (pulse)
-#define PWM_STEPS 256
+#define PWM_STEPS       256
+/* clang-format on */
 
 void Set_Freq(uint16_t freq) {
     if (freq > 31250) {

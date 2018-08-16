@@ -1,6 +1,6 @@
 #include "inc/stm32f030x6.h"
-#include "./user_i2c.h"
-#include "./tb6612.h"
+#include "src/user_i2c.h"
+#include "src/tb6612.h"
 
 /* clang-format off */
 #define I2C_BASE_ADDR           0x2d
