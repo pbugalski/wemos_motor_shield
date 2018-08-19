@@ -1,11 +1,12 @@
-#ifndef __TB6612_H
-#define __TB6612_H
+#ifndef SRC_TB6612_H_
+#define SRC_TB6612_H_
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stdint.h>
-
+/* clang-format off */
 #define PIN_AIN2        0
 #define PIN_AIN1        1
 #define PIN_STBY        2
@@ -17,16 +18,17 @@ extern "C" {
 #define PIN_SDA         10
 #define PIN_SWD         13
 #define PIN_SWC         14
- 
+
 #define MOTOR_A         0
 #define MOTOR_B         1
 #define MOTOR_AB        2
- 
+
 #define DIR_BRAKE       0x00
 #define DIR_CCW         0x01
 #define DIR_CW          0x02
 #define DIR_STOP        0x03
 #define DIR_STANDBY     0x04
+/* clang-format on */
 
 void Set_Freq(uint16_t freq);
 void Set_TB6612_Dir(uint8_t motor, uint8_t dir, uint8_t pulse);
@@ -34,5 +36,5 @@ void Set_TB6612_Dir(uint8_t motor, uint8_t dir, uint8_t pulse);
 #ifdef __cplusplus
 }
 #endif
-#endif
 
+#endif  // SRC_TB6612_H_

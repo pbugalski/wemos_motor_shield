@@ -1,14 +1,26 @@
+/**
+ * This file is part of the wemos_motor_shield_firmwere
+ * Which is release under The MIT License (MIT)
+ * Please see LICENSE.md file for details
+ *
+ * This is a is a firmware for the WEMOS motor shield.
+ * It aims to overcome the limitations and errors of the original, by providing a method to
+ * set the PWM frequency and the PWM resolution(steps).
+ * This requires a different I2C protocol, please visit the link for a compatible Arduino library.
+ * https://github.com/danielfmo/WEMOS_Motor_Shield_Arduino_Library
+ */
+
 #include "inc/stm32f030x6.h"
 #include "src/user_i2c.h"
 #include "src/tb6612.h"
 
 /* clang-format off */
-#define I2C_BASE_ADDR           0x2d
-#define MODE_IN                 0x00
-#define MODE_OUT                0x01
-#define MODE_AF                 0x02
-#define MODE_AN                 0x03
-#define MODER(mode, pin)        ((mode) << (2 * (pin)))
+#define I2C_BASE_ADDR       0x2d
+#define MODE_IN             0x00
+#define MODE_OUT            0x01
+#define MODE_AF             0x02
+#define MODE_AN             0x03
+#define MODER(mode, pin)    ((mode) << (2 * (pin)))
 /* clang-format on */
 
 volatile uint32_t timeout = 0;
@@ -19,6 +31,12 @@ void SysTick_Handler(void) {
     }
 }
 
+/**
+ * Receive an I2C command
+ * @param  *buf  - pointer to the buffer where the command is writen
+ * @param  count - size in bytes of the receiving command
+ * @return (int) - error code
+ */
 int receive_cmd(uint8_t *buf, uint16_t count) {
     int i;
 
@@ -45,13 +63,17 @@ int receive_cmd(uint8_t *buf, uint16_t count) {
     for (i = 0; i < count; i++) {
         while (((I2C1->ISR & I2C_ISR_RXNE) == 0) && (timeout)) {
         }
-        if (!timeout) return -2;
+        if (!timeout) {
+            return -2;
+        }
         *buf++ = I2C1->RXDR;
     }
 
     while (((I2C1->ISR & I2C_ISR_STOPF) == 0) && (timeout)) {
     }
-    if (!timeout) return -2;
+    if (!timeout) {
+        return -2;
+    }
 
     I2C1->ICR = I2C_ICR_STOPCF;
     return 0;
@@ -88,10 +110,12 @@ int main() {
 
     SysTick_Config(8000);
 
-    while (1) {
+    for (;;) {
         uint8_t cmd[4];
         int rc = receive_cmd(cmd, sizeof(cmd));
-        if (rc == 0) user_i2c_proc(cmd);
+        if (rc == 0) {
+            user_i2c_proc(cmd);
+        }
     }
 
     return 0;
