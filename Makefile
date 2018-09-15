@@ -1,9 +1,7 @@
 PROJ_NAME = motor_shield
 
 SOURCES = startup_stm32.s \
-    main.c \
-    user_i2c.c \
-    tb6612.c
+    main.c
 
 ifeq ($(OS),Windows_NT)
     PORT ?= COM10
