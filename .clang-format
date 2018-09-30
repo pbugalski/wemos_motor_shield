@@ -10,3 +10,4 @@ BreakBeforeTernaryOperators: true
 ColumnLimit: 120
 IndentWidth: 4
 SortIncludes: false
+AccessModifierOffset: -3

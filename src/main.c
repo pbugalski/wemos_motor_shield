@@ -242,10 +242,10 @@ int main() {
 
     // runTest();
     while (1) {
-        uint8_t cmd[CMD_SIZE];
-        int rc = ReceiveMessage(cmd, sizeof(cmd));
+        uint8_t message[CMD_SIZE];
+        int rc = ReceiveMessage(message, sizeof(message));
         if (rc == 0) {
-            ProcessMessage(cmd);
+            ProcessMessage(message);
         }
     }
 
