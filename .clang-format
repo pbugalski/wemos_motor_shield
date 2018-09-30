@@ -1,0 +1,13 @@
+Language: Cpp
+BasedOnStyle: Google
+AlignConsecutiveAssignments: true
+AlignTrailingComments: true
+AlignOperands: true
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Attach
+BreakBeforeInheritanceComma: false
+BreakBeforeTernaryOperators: true
+ColumnLimit: 120
+IndentWidth: 4
+SortIncludes: false
+AccessModifierOffset: -3
