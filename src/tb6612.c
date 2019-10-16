@@ -43,24 +43,24 @@ static uint8_t Get_TB6612_Dir(uint8_t motor)
     return 0xFF;
 }
 
-void Set_Freq(uint32_t freq)
-{
-    if (freq > 80000)
-        freq = 80000;
-    else if (freq < 1)
+void Set_Freq(uint32_t freq) {
+    if (freq > PWM_MAX_FREQ) {
+        freq = PWM_MAX_FREQ;
+    } else if (freq < 0) {
         freq = 1;
-    if (freq < 20)
-        TIM3->PSC = 125 - 1;
-    else if (freq < 1000)
-        TIM3->PSC = 8 - 1;
-    else
+    }
+    TIM3->ARR = PWM_STEPS - 1;
+
+    if (freq == 0) {
         TIM3->PSC = 0;
-    TIM3->ARR = 8000000 / (TIM3->PSC + 1) / freq;
+    } else {
+        TIM3->PSC = 8000000 / (PWM_STEPS * freq) - 1;
+    }
 }
 
 uint32_t Get_Freq(void)
 {
-    return (8000000 / (TIM3->PSC + 1) / TIM3->ARR);
+    return (8000000 / (TIM3->PSC + 1) / PWM_STEPS);
 }
 
 uint8_t Get_TB6612_State(uint8_t *buf, uint8_t size)
