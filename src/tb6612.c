@@ -21,8 +21,12 @@ void Set_Freq(uint32_t freq)
     TIM3->ARR = 8000000 / (TIM3->PSC + 1) / freq;
 }
 
-void Set_TB6612_Dir(uint8_t motor, uint8_t dir, uint16_t pulse)
+void Set_TB6612_Dir(uint8_t motor, uint8_t dir, uint16_t dutycycle)
 {
+	  uint32_t pulse;
+	
+	  pulse = ((uint32_t)dutycycle * (uint32_t)TIM3->ARR) / 10000; 
+	
     switch (dir)
     {
         case DIR_BRAKE:
