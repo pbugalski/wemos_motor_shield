@@ -34,13 +34,13 @@ handler_t commands[] = {
     {0x10, 0xFE, CMD_READ,  get_motor},
 };
 
-inline uint16_t reverse16(uint16_t value)
+static inline uint16_t reverse16(uint16_t value)
 {
     return (((value & 0x00FF) << 8) |
             ((value & 0xFF00) >> 8));
 }
 
-inline uint32_t reverse32(uint32_t value) 
+static inline uint32_t reverse32(uint32_t value) 
 {
     return (((value & 0x000000FF) << 24) |
             ((value & 0x0000FF00) <<  8) |
@@ -74,7 +74,8 @@ static uint8_t set_motor(uint8_t *data, uint8_t size)
     if (size < 4) return 0;
     uint8_t motor = data[0] & 0x01;
     uint8_t dir = data[1];
-    uint16_t pulse = (uint16_t)data[2] << 8 | (uint16_t)data[3];
+    uint16_t percent_x100 = ((uint16_t)data[2] << 8 | (uint16_t)data[3]);
+    uint8_t pulse = (PWM_STEPS - 1) * percent_x100 / MAX_PERCENTAGE;
 
     Set_TB6612_Dir(motor, dir, pulse);
 

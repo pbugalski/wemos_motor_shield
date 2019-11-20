@@ -66,21 +66,24 @@ uint32_t Get_Freq(void)
 uint8_t Get_TB6612_State(uint8_t *buf, uint8_t size)
 {
     uint8_t len = 0;
+    uint16_t percent_x100 = 0;
 
     if (size < 6) return 0;
 
     buf[len++] = Get_TB6612_Dir(MOTOR_A);
-    buf[len++] = get_pwm_a() >> 8;
-    buf[len++] = get_pwm_a() & 0xFF;
+    percent_x100 = get_pwm_a() * MAX_PERCENTAGE / (PWM_STEPS - 1);
+    buf[len++] = percent_x100 >> 8;
+    buf[len++] = percent_x100 & 0xFF;
 
     buf[len++] = Get_TB6612_Dir(MOTOR_B);
-    buf[len++] = get_pwm_b() >> 8;
-    buf[len++] = get_pwm_b() & 0xFF;
+    percent_x100 = get_pwm_b() * MAX_PERCENTAGE / (PWM_STEPS - 1);
+    buf[len++] = percent_x100 >> 8;
+    buf[len++] = percent_x100 & 0xFF;
 
     return len;
 }
 
-void Set_TB6612_Dir(uint8_t motor, uint8_t dir, uint16_t pulse)
+void Set_TB6612_Dir(uint8_t motor, uint8_t dir, uint8_t pulse)
 {
     switch (dir)
     {
