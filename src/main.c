@@ -10,7 +10,16 @@
 #define MODE_AN                 0x03
 #define MODER(mode, pin)        ((mode) << (2 * (pin)))
 
+#define MAX_PKT_LEN             32
+
+#define ERR_TIMEOUT             (-1)
+#define ERR_ABORTED             (-2)
+#define ERR_NOTIMPL             (-3)
+
+
+static uint8_t buf[MAX_PKT_LEN];
 volatile uint32_t timeout = 0;
+
 
 void SysTick_Handler(void)
 {
@@ -18,43 +27,104 @@ void SysTick_Handler(void)
         timeout--;
 }
 
-int receive_cmd(uint8_t *buf, uint16_t count)
+static int receive_cmd(uint8_t *buf, uint8_t size)
 {
-    int i;
+    uint8_t *pbuf = buf;
+    uint8_t len = 0;
 
+    /* Reenable interface to reset it`s state */
     I2C1->CR1 = 0;
     while (I2C1->CR1 & I2C_CR1_PE);
-
     I2C1->CR1 = I2C_CR1_PE;
     while ((I2C1->CR1 & I2C_CR1_PE) == 0);
 
+    /* Clear all interrupt flags */
     I2C1->ICR = 0xffffffff;
 
+    /* Wait own addr match */
     while ((I2C1->ISR & I2C_ISR_ADDR) == 0);
     I2C1->ICR = I2C_ICR_ADDRCF;
 
+    /* Send responce for a general read command */
     if (I2C1->ISR & I2C_ISR_DIR) {
-        // read - not supported
-        return -1;
+        /* Just reply own addr back */
+        I2C1->TXDR = (I2C1->OAR1 & 0xFF) >> 1;
+        while(!(I2C1->ISR & I2C_ISR_TXE));
+
+        timeout = 2;
+        while (((I2C1->ISR & I2C_ISR_STOPF) == 0) && (timeout));
+        if (!timeout)
+            return ERR_TIMEOUT;
+
+        return 0;
     }
 
+    /* Receive 1st byte of data */
     timeout = 4;
-    for (i = 0; i < count; i++) {
-        while (((I2C1->ISR & I2C_ISR_RXNE) == 0) && (timeout));
+    while ((I2C1->ISR & I2C_ISR_RXNE) == 0 && 
+        (I2C1->ISR & I2C_ISR_STOPF) == 0 && 
+        timeout);
+    if (!timeout)
+        return ERR_TIMEOUT;
+    if (I2C1->ISR & I2C_ISR_STOPF)
+        return ERR_ABORTED;
+    *buf++ = I2C1->RXDR;
+
+    /* Wait the rest of data bytes or 2nd start bit */
+    while ((I2C1->ISR & I2C_ISR_RXNE) == 0 && (I2C1->ISR & I2C_ISR_ADDR) == 0);
+
+    /* 2nd start bit received */
+    if (I2C1->ISR & I2C_ISR_ADDR) {
+        I2C1->ICR = I2C_ICR_ADDRCF;
+
+        /* Read direction */
+        if (I2C1->ISR & I2C_ISR_DIR) {
+            uint8_t len = handle_cmd(CMD_READ, pbuf, size);
+            /* Send a reply */
+            for (uint8_t i = 0; i < len; i++) {
+                I2C1->TXDR = pbuf[i];
+                while(!(I2C1->ISR & I2C_ISR_TXE) && !(I2C1->ISR & I2C_ISR_NACKF));
+                /* Check if master has interrupted the transmission */
+                if ((I2C1->ISR & I2C_ISR_NACKF)) {
+                    break;
+                }
+            }
+
+            timeout = 2;
+            while (((I2C1->ISR & I2C_ISR_STOPF) == 0) && (timeout));
+            if (!timeout)
+                return ERR_TIMEOUT;
+
+            return 0;
+        } else {
+            /* 2nd start for write direction is not supported */
+            return ERR_NOTIMPL;
+        }
+    }
+
+    /* Receive the rest of data bytes */
+    timeout = 2;
+    for (len = 1; len < MAX_PKT_LEN; len++) {
+        while ((I2C1->ISR & I2C_ISR_RXNE) == 0 && 
+            (I2C1->ISR & I2C_ISR_STOPF) == 0 && 
+            timeout);
         if (!timeout)
-            return -2;
+            return ERR_TIMEOUT;
+        if (I2C1->ISR & I2C_ISR_STOPF)
+            return len;
         *buf++ = I2C1->RXDR;
     }
 
     while (((I2C1->ISR & I2C_ISR_STOPF) == 0) && (timeout));
     if (!timeout)
-        return -2;
+        return ERR_TIMEOUT;
 
     I2C1->ICR = I2C_ICR_STOPCF;
-    return 0;
+
+    return len;
 }
 
-int main()
+static void init_i2c(void)
 {
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
     RCC->APB1ENR |= RCC_APB1ENR_I2C1EN | RCC_APB1ENR_TIM3EN;
@@ -77,6 +147,10 @@ int main()
     I2C1->OAR1 = I2C_OAR1_OA1EN | ((I2C_BASE_ADDR + (GPIOF->IDR & 3)) << 1);
     
     I2C1->CR1 = I2C_CR1_PE;
+}
+
+static void init_pwm(void)
+{
 
     TIM3->CCMR1 = TIM_CCMR1_OC1PE | TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 |
         TIM_CCMR1_OC2PE | TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1;
@@ -85,17 +159,21 @@ int main()
     TIM3->ARR = 8000 - 1;
     TIM3->EGR = TIM_EGR_UG;
     TIM3->CR1 = TIM_CR1_ARPE | TIM_CR1_CEN;
+}
+
+int main()
+{
+    init_i2c();
+    init_pwm();
 
     SysTick_Config(8000);
 
-    while (1)
-    {
-        uint8_t cmd[4];
-        int rc = receive_cmd(cmd, sizeof(cmd));
-        if (rc == 0)
-            user_i2c_proc(cmd);
+    while (1) {
+        int8_t len = receive_cmd(buf, sizeof(buf));
+        if (len > 0) {
+            handle_cmd(CMD_WRITE, buf, len);
+        }
     }
 
     return 0;
 }
-
