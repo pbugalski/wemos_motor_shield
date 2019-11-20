@@ -83,11 +83,14 @@ static int receive_cmd(uint8_t *buf, uint8_t size)
             /* Send a reply */
             for (uint8_t i = 0; i < len; i++) {
                 I2C1->TXDR = pbuf[i];
-                while(!(I2C1->ISR & I2C_ISR_TXE) && !(I2C1->ISR & I2C_ISR_NACKF));
+                timeout = 2;
+                while(!(I2C1->ISR & I2C_ISR_TXE) && !(I2C1->ISR & I2C_ISR_NACKF) && (timeout));
                 /* Check if master has interrupted the transmission */
                 if ((I2C1->ISR & I2C_ISR_NACKF)) {
                     break;
                 }
+                if (!timeout)
+                    return ERR_TIMEOUT;
             }
 
             timeout = 2;
