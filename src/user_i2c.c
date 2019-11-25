@@ -18,15 +18,25 @@ static uint8_t set_motor(uint8_t *data, uint8_t size);
 static uint8_t get_motor(uint8_t *data, uint8_t size);
 
 /*
-total 4bytes
+CMD     | R/W  | PARAMETER                      | DESCRIPTION
+0x0X    | W    | 28bit frequency                | Set PWM frequency
+0x0X    | R    |                                | Get PWM frequency
+0x10    | W    | 8bit dir, 16bit duty (%)       | Set motor A
+0x10    | R    |                                | Get motor A
+0x11    | W    | 8bit dir, 16bit duty (%)       | Set motor B
+0x11    | R    |                                | Get motor B
 
-|0.5byte CMD| 3.5byte Parm|
-
-CMD								| 	parm
-0x0X  set freq  	|  uint32  freq
-0x10  set motorA  |  uint8 dir  uint16 pwm
-0x11  set motorB  |  uint8 dir  uint16 pwm
+PARAMETERs:
+"dir" - motor run direction:
+    0x00 - Break
+    0x01 - CCW
+    0x02 - CW
+    0x03 - Stop
+    0x04 - Standby
+"duty" - PWM duty cycle: 0 - 100%
+"frequency" - PWM frequency: 1 - 31250Hz
 */
+
 handler_t commands[] = {
     {0x00, 0xF0, CMD_WRITE, set_freq},
     {0x00, 0xF0, CMD_READ,  get_freq},
