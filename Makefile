@@ -8,6 +8,7 @@ SOURCES = startup_stm32.s \
 PORT ?= /dev/ttyUSB0
 
 CC = arm-none-eabi-gcc
+GDB = arm-none-eabi-gdb
 OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 SIZE = arm-none-eabi-size
@@ -30,6 +31,12 @@ $(PROJ_NAME).elf: $(SOURCES)
 
 program: $(PROJ_NAME).bin
 	openocd -f stm32f0motor.cfg -f stm32f0-openocd.cfg -c "stm_flash $(PROJ_NAME).bin" -c shutdown
+
+openocd:
+	openocd -f stm32f0motor.cfg
+
+gdb: $(PROJ_NAME).elf
+	$(GDB) -x .gdbinit
 
 flash: $(PROJ_NAME).bin
 	stm32flash $(PORT) -k || true

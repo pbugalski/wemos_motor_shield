@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
-void user_i2c_proc(uint8_t i2c_data[4]);
+#define CMD_READ    1
+#define CMD_WRITE   2
+
+uint8_t handle_cmd(uint8_t cmd, uint8_t *buf, uint8_t size);
 
 #endif
